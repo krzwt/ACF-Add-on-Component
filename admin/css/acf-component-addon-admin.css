@@ -1,0 +1,20 @@
+/**
+ * All of the CSS for your admin-specific functionality should be
+ * included in this file.
+ */
+.acf-page-custom-checkbox .acf-checkbox-list {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.acf-page-custom-checkbox .acf-checkbox-list li {
+    width: min(180px, 100%);
+    text-transform: capitalize;
+}
+
+.acf-page-custom-checkbox .acf-checkbox-list li:first-child {
+    width: 100%;
+    border-bottom: 1px solid lightgray;
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+}
