@@ -3,18 +3,35 @@
  * included in this file.
  */
 .acf-page-custom-checkbox .acf-checkbox-list {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    /* flex-wrap: wrap; */
 }
 
 .acf-page-custom-checkbox .acf-checkbox-list li {
-    width: min(180px, 100%);
+    /* width: min(180px, 100%); */
     text-transform: capitalize;
+    margin-right: 0 !important;
 }
 
 .acf-page-custom-checkbox .acf-checkbox-list li:first-child {
+    grid-column: 1/-1;
     width: 100%;
     border-bottom: 1px solid lightgray;
     padding-bottom: 5px;
     margin-bottom: 5px;
+}
+
+/* ==================== */
+/* ==== Responsive ==== */
+/* ==================== */
+@media screen and (max-width: 1600px) {
+    .acf-page-custom-checkbox .acf-checkbox-list {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+@media screen and (max-width: 1200px) {
+    .acf-page-custom-checkbox .acf-checkbox-list {
+        grid-template-columns: 1fr;
+    }
 }

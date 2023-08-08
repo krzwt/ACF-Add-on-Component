@@ -156,7 +156,8 @@ class Acf_Component_Addon_Admin {
 							'max' => 0,
 							'layout' => 'table',
 							'button_label' => __('Add More','acf-component-addon'),
-							'sub_fields' => array (array ('key' => 'field_62b03e2f1bceg',
+							'sub_fields' => array (
+								array ('key' => 'field_62b03e2f1bceg',
 									'label' => __('Select Page Template and Post','acf-component-addon'),
 									'name' => 'my_select_page_template',
 									'type' => 'select',
@@ -250,6 +251,7 @@ class Acf_Component_Addon_Admin {
 	public function acf_load_my_select_page_template_field_choices($field) {
 		$templateArr = array();
 		$postArr = array();
+		$pagesArr = array();
 		$field['choices'] = array();
 		$templates = array_merge(get_page_templates(), array('Default' => 'default'));
 		if( is_array($templates) ) {
@@ -268,9 +270,18 @@ class Acf_Component_Addon_Admin {
 			$postArr[$post_type->name] = $post_type->label;
 		}
 		ksort($postArr);
+		$pages = get_pages(); // Retrieve a list of pages
+
+		// Add choices to the ACF field
+		if (!empty($pages)) {
+			foreach ($pages as $page) {
+				$pagesArr[$page->ID] = $page->post_title;
+			}
+		}
 		$field['choices'] = array(
 			'Templates' => $templateArr,
 			'Posts' => $postArr,
+			'Pages' => $pagesArr,
 		);
 		return $field;
 	}
@@ -312,20 +323,27 @@ class Acf_Component_Addon_Admin {
 					array_push($availableOptions, $layout->name);
 				}
 			}
-			$select_page_template = array();
+			// $select_page_template = array();
 			$postId = get_the_ID();
 			$post_type_slug = get_post_type($postId);
+			$page = get_post($postId);
+			$post_type_Arr = array();
+			if ($page) {
+				$page_name = $page->post_name;     // Get the page slug
+				$page_title = $page->post_title;   // Get the page title
+				$page_Id = $page->ID;   // Get the page Id
+				array_push($post_type_Arr,$page->ID);
+			}
 			if( $post_type_slug == 'page' ) {
 				$post_slug = get_post_meta($postId, '_wp_page_template', true);
-				if( $post_slug == 'default' ){
-					$post_slug = 'default';
-				}else{
-					$post_slug = get_post_meta($postId, '_wp_page_template', true);
-				}
+				$post_slug = ($post_slug === 'default') ? 'default' : $post_slug;
+				array_push($post_type_Arr,$post_slug);
 			} elseif( $post_type_slug == 'post' ) {
 				$post_slug = 'post';
+				array_push($post_type_Arr,$post_slug);
 			} else {
 				$post_slug = $post_type_slug;
+				array_push($post_type_Arr,$post_slug);
 			}
 			$add_component_button_text = get_field( 'add_component_button_text','option' );
 			if( have_rows('my_page_component_selection', 'option') ):
@@ -333,8 +351,8 @@ class Acf_Component_Addon_Admin {
 					$select_page_template = get_sub_field('my_select_page_template');
 					$select_page_components_group = get_sub_field( 'select_page_components' );
 					$select_page_components = $select_page_components_group['my_select_page_components'];
-					if( $post_slug == $select_page_template ) {
-						echo 'if';
+
+					if( in_array($select_page_template,$post_type_Arr) ) {
 						$disabledFields=array_values(array_diff($availableOptions, $select_page_components));
 						$acf_json_directory=plugin_dir_path(__DIR__).'admin/acf-json';
 
@@ -350,7 +368,7 @@ class Acf_Component_Addon_Admin {
 						?><script type="text/javascript">(function($) {
 								$(document).ready(function() {
 										<?php if (!empty($add_component_button_text)) { ?>
-											$('.acf-actions .acf-button').text("<?php echo $add_component_button_text; ?>");
+											$('.acf-actions .acf-button[data-name="add-layout"]').text("<?php echo $add_component_button_text; ?>");
 										<?php } ?>
 										$.get('<?php echo $acf_json_file_url; ?>', function(data) {
 												$.each(data, function(i, item) {
@@ -373,6 +391,12 @@ class Acf_Component_Addon_Admin {
 							}
 						)(jQuery);
 						</script><?php
+						if($post_type_Arr[0] == $select_page_template){
+							// echo "in---$select_page_template";
+							break;
+						}else{
+							// echo "out---$select_page_template";
+						}
 					}
 				endwhile;
 			endif;
