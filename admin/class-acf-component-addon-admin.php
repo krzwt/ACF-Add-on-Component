@@ -118,7 +118,6 @@ class Acf_Component_Addon_Admin {
 	public function filter_acf_load_field($field) {
 		$postid = get_the_ID();
 		$component_directory = THEME_DIRECTORY_COMPONENTS_PATH;
-
 		if ($field['name'] == 'page_component' && $field['parent'] == $postid) {
 			$field_groups = acf_get_field_groups();
 			$id = array_column($field_groups, 'ID');
@@ -128,7 +127,6 @@ class Acf_Component_Addon_Admin {
 			$new_value = $field_key_array[$postid];
 			$deprecated = null;
 			$autoload = 'no';
-
 			if ( get_option($option_name) !== false ) {
 				update_option($option_name, $new_value, $deprecated, $autoload);
 			} else {
@@ -139,12 +137,66 @@ class Acf_Component_Addon_Admin {
 	}
 
 	public function acf_add_local_field_groups() {
-		if(function_exists('acf_add_local_field_group')):
-			acf_add_local_field_group(
-				array ('key' => 'my_page_component_selection',
+		// if(function_exists('acf_add_local_field_group')):
+			$fieldArry = array(
+				array(
+					'key' => 'field_my_accordion',
+					'label' => __('Components List','acf-component-addon'),
+					'name' => 'my_accordion',
+					'type' => 'accordion',
+					'instructions' => '',
+					'required' => 0,
+					'conditional_logic' => 0,
+					'open' => 0,
+					'multi_expand' => 0,
+				),
+				array(
+					'key' => 'field_select_component',
+					'label' => __('Select Components','acf-component-addon'),
+					'name' => 'my_select_page_components',
+					'type' => 'checkbox',
+					'layout' => 'horizontal',
+					'instructions' => '',
+					'required' => 1,
+					'choices' => array(),
+					'default_value' => [],
+					'allow_null' => 0,
+					'multiple' => 1,
+					'ui' => 1,
+					"toggle" => 1,
+					'return_format' => 'value',
+					'ajax' => 0,
+					'placeholder' => '',
+					'wrapper' => array(
+						'width' => '',
+						'class' => 'acf-page-custom-checkbox',
+						'id' => ''
+					),
+				)
+			);
+			$fieldArrWarning = array (
+				array (
+					"key" => "field_warning_message",
+					"label" => "Warning:",
+					"name" => "",
+					"aria-label" => "",
+					"type" => "message",
+					"instructions" => "",
+					"required" => 0,
+					"conditional_logic" => 0,
+					"message" => __("ACF Page Component not found or not in sync.","acf-component-addon"),
+					"new_lines" => "wpautop",
+					"esc_html" => 0
+				)
+			);
+			$page_component_field_key = get_option('page_component_key');
+			$field_type = isset($page_component_field_key) && !empty($page_component_field_key) ? $fieldArry : $fieldArrWarning;
+			acf_add_local_field_group(array (
+					'key' => 'my_page_component_selection',
 					'title' => 'Page Component Selection',
 					'fields' => array (
-						array ('key' => 'field_62b1594a4b18b',
+						array (
+							'key' => 'field_page_selection',
 							'label' => __('Page Component Selection','acf-component-addon'),
 							'name' => 'my_page_component_selection',
 							'type' => 'repeater',
@@ -152,12 +204,12 @@ class Acf_Component_Addon_Admin {
 							'required' => 1,
 							'conditional_logic' => 0,
 							'collapsed' => '',
-							'min' => 0,
+							'min' => 1,
 							'max' => 0,
 							'layout' => 'table',
 							'button_label' => __('Add More','acf-component-addon'),
 							'sub_fields' => array (
-								array ('key' => 'field_62b03e2f1bceg',
+								array ('key' => 'field_page_template',
 									'label' => __('Select Page Template and Post','acf-component-addon'),
 									'name' => 'my_select_page_template',
 									'type' => 'select',
@@ -174,54 +226,19 @@ class Acf_Component_Addon_Admin {
 									'placeholder' => ''
 								),
 								array (
-									'key' => 'field_62b03e411bcf10',
+									'key' => 'group_page_components',
 									'label' => __('Select Page Components','acf-component-addon'),
 									'name' => 'select_page_components',
 									'type' => 'group',
 									'layout' => 'block', // Use 'block' layout for accordion effect
 									'instructions' => '',
 									'conditional_logic' => 0,
-									'sub_fields' => array(
-										array(
-											'key' => 'field_my_accordion',
-											'label' => __('Components List','acf-component-addon'),
-											'name' => 'my_accordion',
-											'type' => 'accordion',
-											'instructions' => '',
-											'required' => 0,
-											'conditional_logic' => 0,
-											'open' => 0,
-											'multi_expand' => 0,
-										),
-										array(
-											'key' => 'field_62b03e411bcf1',
-											'label' => __('Select Components','acf-component-addon'),
-											'name' => 'my_select_page_components',
-											'type' => 'checkbox',
-											'layout' => 'horizontal',
-											'instructions' => '',
-											'required' => 1,
-											'choices' => array(),
-											'default_value' => [],
-											'allow_null' => 0,
-											'multiple' => 1,
-											'ui' => 1,
-											"toggle" => 1,
-											'return_format' => 'value',
-											'ajax' => 0,
-											'placeholder' => '',
-											'wrapper' => array(
-												'width' => '',
-												'class' => 'acf-page-custom-checkbox',
-												'id' => ''
-											),
-										),
-									),
+									'sub_fields' => $field_type,
 								),
 							),
 						),
 						array (
-							'key' => 'field_64cba2d15b959',
+							'key' => 'field_comp_btn_text',
 							'label' => __('Add Component Button Text','acf-component-addon'),
 							'name' => 'add_component_button_text',
 							'aria-label' => '',
@@ -245,7 +262,7 @@ class Acf_Component_Addon_Admin {
 						),
 					),
 				));
-		endif;
+		// endif;
 	}
 
 	public function acf_load_my_select_page_template_field_choices($field) {
@@ -289,8 +306,8 @@ class Acf_Component_Addon_Admin {
 	public function acf_load_my_select_page_components_field_choices($field) {
 		$field['choices'] = array();
 		$page_component_field_key = get_option('page_component_key');
-		$page_component_field_key = str_replace('field_', 'group_', $page_component_field_key);
-		if( $page_component_field_key ) {
+		if (isset($page_component_field_key) && !empty($page_component_field_key)) {
+			$page_component_field_key = str_replace('field_', 'group_', $page_component_field_key);
 			$jsonURL = THEME_DIRECTORY_PATH.'/includes/acf/'.$page_component_field_key.'.json';
 			$contents = file_get_contents($jsonURL);
 			$data = (array) json_decode($contents);
@@ -304,16 +321,15 @@ class Acf_Component_Addon_Admin {
 					$field['choices'][$layout_name] = $layout_label;
 				}
 			}
-			return $field;
 		}
+		return $field;
 	}
 
 	public function acf_admin_head_layout() {
 		$availableOptions = [];
 		$page_component_field_key = get_option('page_component_key');
-		$page_component_field_key = str_replace('field_', 'group_', $page_component_field_key);
-
-		if( $page_component_field_key ) {
+		if (isset($page_component_field_key) && !empty($page_component_field_key)) {
+			$page_component_field_key = str_replace('field_', 'group_', $page_component_field_key);
 			$jsonURL = THEME_DIRECTORY_PATH.'/includes/acf/'.$page_component_field_key.'.json';
 			$contents = file_get_contents($jsonURL);
 			$data = json_decode($contents);
@@ -323,7 +339,7 @@ class Acf_Component_Addon_Admin {
 					array_push($availableOptions, $layout->name);
 				}
 			}
-			// $select_page_template = array();
+
 			$postId = get_the_ID();
 			$post_type_slug = get_post_type($postId);
 			$page = get_post($postId);
@@ -372,9 +388,9 @@ class Acf_Component_Addon_Admin {
 										<?php } ?>
 										$.get('<?php echo $acf_json_file_url; ?>', function(data) {
 												$.each(data, function(i, item) {
-														tmpl=$('.tmpl-popup').html();
+														var tmpl=$('.tmpl-popup').html();
 														//Create jQuery object
-														tmplDiv=$('<div>', {
+														var tmplDiv=$('<div>', {
 																html : tmpl
 															}
 														);
@@ -391,12 +407,7 @@ class Acf_Component_Addon_Admin {
 							}
 						)(jQuery);
 						</script><?php
-						if($post_type_Arr[0] == $select_page_template){
-							// echo "in---$select_page_template";
-							break;
-						}else{
-							// echo "out---$select_page_template";
-						}
+						if( $post_type_Arr[0] == $select_page_template ){break;}
 					}
 				endwhile;
 			endif;
